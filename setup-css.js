@@ -153,6 +153,14 @@ if (boardId !== null) {
   var States = ['canceled-tdl', 'done-tdl', 'for-later-tdl', 'waiting-for-tdl', 'in-progress-tdl']; // in order of priority
   var Fields = ['Canceled', 'Done', 'For Later', 'Waiting For', 'Started'];
 
+  const listClass = "Sb_QqNKeadm2oq";
+  const listTitleClass = "mKJWg6W_CLHoiO";
+  const cardClass = "KWQlnMvysRK4fI";
+  const cardContentClass = "amUfYqLTZOvGsn";
+  const cardTitleClass = "NdQKKfeqJDDdX3";
+  const badgesClass = "jS9THwzyUow79A";
+  const badgeClass = "BOkIMdOUAQVOQk";
+
   function getStateFromBadgeText(node) {
     if (!node)
       return undefined;
@@ -210,13 +218,13 @@ if (boardId !== null) {
 
   function updateColor(listCardNode) {
     // Look at badge text
-    var badgeTextNodes = listCardNode.querySelectorAll('.badge-text');
+    var badgeTextNodes = listCardNode.querySelectorAll(`.${badgesClass}`);
     var compoundStates = Array.from(badgeTextNodes).map(function(badgeTextNode) {
       return getStateFromBadgeText(badgeTextNode);
     });
 
     // Look at title
-    var titleState = getStateFromTitle(listCardNode.querySelector('.list-card-title'));
+    var titleState = getStateFromTitle(listCardNode.querySelector(`.${cardTitleClass}`));
     if (titleState !== undefined)
       compoundStates.push(titleState);
 
@@ -225,7 +233,8 @@ if (boardId !== null) {
     setState(listCardNode, mainState);
 
     // Set additional class if having a short or past deadline
-    var iconClockNode = listCardNode.querySelector('.badge.is-due-soon') || listCardNode.querySelector('.badge.is-due-now') || listCardNode.querySelector('.badge.is-due-past');
+    /* TODO */
+    var iconClockNode = listCardNode.querySelector(`.${badgeClass}.is-due-soon`) || listCardNode.querySelector(`.${badgeClass}.is-due-now`) || listCardNode.querySelector(`.${badgeClass}.is-due-past`);
     if (listCardNode.classList)
       listCardNode.classList.toggle('urgent-tdl', iconClockNode !== null && (mainState !== 'canceled-tdl'));
   }
@@ -238,7 +247,7 @@ if (boardId !== null) {
   })();
 
   function updateSwimlanes(listWrapperNode) {
-    var titleEl = listWrapperNode.querySelector('.list-header-name');
+    var titleEl = listWrapperNode.querySelector(`.${listTitleClass}’`);
     if (!titleEl)
       return;
     var wantWrap = false;
@@ -280,19 +289,19 @@ if (boardId !== null) {
     }
   }
 
-  catchNodeByClass('list-card', updateColor);
+  catchNodeByClass(cardClass, updateColor);
 
-  catchNodeByClass('list-wrapper', updateSwimlanes);
+  catchNodeByClass(listClass, updateSwimlanes);
 
   // Make sure we catch late asynchronous badge changes
   var classesToObserve = [
-  {className: 'badge', type: 'c', callback: function(node) {
-    var listCardNode = getParent(node, '.list-card');
+  {className: cardContentClass, type: 'c', callback: function(node) {
+    var listCardNode = getParent(node, `.${cardClass}`);
     if (listCardNode)
       updateColor(listCardNode);
   }},
-  {className: 'list-header-name-assist', type: 'v', callback: function(node) {
-    var listWrapperNode = getParent(node, '.list-wrapper');
+  {className: 'list-header-name-assist' /*TODO*/, type: 'v', callback: function(node) {
+    var listWrapperNode = getParent(node, `.${listClass}`);
     if (listWrapperNode)
       updateSwimlanes(listWrapperNode);
   }},

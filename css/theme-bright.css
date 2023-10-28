@@ -1,32 +1,32 @@
 
-#board .list-card.done-tdl {
+#board .KWQlnMvysRK4fI.done-tdl {
     background-color: #61bd4f !important;
 }
 
-#board .list-card.in-progress-tdl {
+#board .KWQlnMvysRK4fI.in-progress-tdl {
     background-color: #f1ed00;
 }
 
-#board .list-card.canceled-tdl {
-    background-color: #fa6f65;
+#board .KWQlnMvysRK4fI.canceled-tdl {
+    background-color: #fa6f65
 }
 
-#board .list-card.for-later-tdl {
+#board .KWQlnMvysRK4fI.for-later-tdl {
     background-color: #ffffff40;
 }
 
-#board .list-card.waiting-for-tdl {
+#board .KWQlnMvysRK4fI.waiting-for-tdl {
     background-color: #ffa700;
 }
 
-#board .list-card.done-tdl .list-card-title {
+#board .KWQlnMvysRK4fI.done-tdl .NdQKKfeqJDDdX3 {
     color: #fff;
 }
 
-#board .list-card.urgent-tdl .list-card-title {
+#board .KWQlnMvysRK4fI.urgent-tdl .NdQKKfeqJDDdX3 {
     font-weight: 700;
 }
 
-#board .list {
+#board .Sb_QqNKeadm2oq {
     background-color: #e2e4e6be
 }

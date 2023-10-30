@@ -216,7 +216,39 @@ if (boardId !== null) {
     }
   }
 
+  // Adapted from https://stackoverflow.com/a/64138530/447122
+
+  function rgb2hsv(r,g,b) { // https://stackoverflow.com/a/54070620/1487756
+    let v=Math.max(r,g,b), n=v-Math.min(r,g,b);
+    let h= n && ((v==r) ? (g-b)/n : ((v==g) ? 2+(b-r)/n : 4+(r-g)/n)); 
+    return [60*(h<0?h+6:h), v&&n/v, v];
+  }
+
+  function strToRGB(str) {
+    if (str === undefined)
+      return undefined;
+    var toks = str.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    if (toks && toks.length > 3) {
+      return [parseInt(toks[1]), parseInt(toks[2]), parseInt(toks[3])];
+    }
+    return undefined;
+  }
+
+  function determineColorGroup(rgbColor) {
+    if (rgbColor === undefined)
+      return "";
+    const hsv = rgb2hsv(rgbColor[0], rgbColor[1], rgbColor[2]);
+    const h = hsv[0];
+    if (h >= 0 && h < 65)
+      return "wrn";
+    else if (h >= 65 && h < 125)
+      return "ok";
+    return "";
+  }
+
   function updateColor(listCardNode) {
+    // if (listCardNode)
+    //   console.log("updateColor", listCardNode.innerText)
     // Look at badge text
     var badgeTextNodes = listCardNode.querySelectorAll(`.${badgesClass}`);
     var compoundStates = Array.from(badgeTextNodes).map(function(badgeTextNode) {
@@ -233,10 +265,23 @@ if (boardId !== null) {
     setState(listCardNode, mainState);
 
     // Set additional class if having a short or past deadline
-    /* TODO */
-    var iconClockNode = listCardNode.querySelector(`.${badgeClass}.is-due-soon`) || listCardNode.querySelector(`.${badgeClass}.is-due-now`) || listCardNode.querySelector(`.${badgeClass}.is-due-past`);
-    if (listCardNode.classList)
-      listCardNode.classList.toggle('urgent-tdl', iconClockNode !== null && (mainState !== 'canceled-tdl'));
+    if (listCardNode.classList) {
+      iconClockNode = listCardNode.querySelector(`.${badgeClass}[data-testid="badge-due-date-completed"]`);
+      if (iconClockNode)
+        listCardNode.classList.toggle('urgent-tdl', false);
+      else {
+        var iconClockNode = listCardNode.querySelector(`.${badgeClass}[data-testid="badge-due-date-not-completed"]`);
+        if (iconClockNode) {
+          const colorGroup = (iconClockNode !== null)
+            ? determineColorGroup(strToRGB(window.getComputedStyle(iconClockNode).getPropertyValue('background-color')))
+            : null;
+          //console.log({colorGroup});
+          listCardNode.classList.toggle('urgent-tdl', colorGroup === "wrn" && (mainState !== 'canceled-tdl'));
+        } else {
+          listCardNode.classList.toggle('urgent-tdl', false);
+        }
+      }
+    }
   }
 
   (function() {
@@ -294,32 +339,42 @@ if (boardId !== null) {
   catchNodeByClass(listClass, updateSwimlanes);
 
   // Make sure we catch late asynchronous badge changes
-  var classesToObserve = [
-  {className: cardContentClass, type: 'c', callback: function(node) {
-    var listCardNode = getParent(node, `.${cardClass}`);
-    if (listCardNode)
-      updateColor(listCardNode);
-  }},
-  {className: 'list-header-name-assist' /*TODO*/, type: 'v', callback: function(node) {
-    var listWrapperNode = getParent(node, `.${listClass}`);
-    if (listWrapperNode)
-      updateSwimlanes(listWrapperNode);
-  }},
-  {className: 'wrapBefore-tdl', type: 'c', callback: function(node) {
-    updateSwimlanes(node); // make sure to make the line break follow in case the list is moved
-  }}];
+  var clClassesToObserve = [
+    {className: cardContentClass, type: 'c', callback: function(node) {
+      var listCardNode = getParent(node, `.${cardClass}`);
+      if (listCardNode)
+        updateColor(listCardNode);
+    }},
+    {className: 'list-header-name-assist' /*TODO*/, type: 'v', callback: function(node) {
+      var listWrapperNode = getParent(node, `.${listClass}`);
+      if (listWrapperNode)
+        updateSwimlanes(listWrapperNode);
+    }},
+    {className: 'wrapBefore-tdl', type: 'c', callback: function(node) {
+      updateSwimlanes(node); // make sure to make the line break follow in case the list is moved
+    }}];
+  
+  var attClassesToObserve = [
+    {className: badgeClass, type: 'a', callback: function(node) {
+      var listCardNode = getParent(node, `.${cardClass}`);
+      if (listCardNode)
+        updateColor(listCardNode);
+    }}
+  ];
 
   var rootNode = document.getElementsByClassName('board-canvas');
   if (rootNode) {
     rootNode = rootNode[0];
     var callback = function(mutations) {
-      for(var mutation of mutations) {
+      for (var mutation of mutations) {
         switch (mutation.type) {
           case 'childList':
             mutation.addedNodes.forEach(function(node, iNode, nodes) {
-              classesToObserve.forEach(function(obj) {
+              clClassesToObserve.forEach(function(obj) {
                 switch (obj.type) {
                   case 'c': // does added node contain tracked class?
+                    // if ((getParent(node, `.${cardClass}`)?.innerText ?? "").indexOf("Facture") !== -1)
+                    //   console.log("Elem in Facture modified", node.className, "want match", obj.className);
                     if (node.classList && node.classList.contains(obj.className))
                       obj.callback(node);
                     break;
@@ -332,13 +387,17 @@ if (boardId !== null) {
             });
             break;
           case 'attributes':
-            if (obj.type === 'a' && mutation.target.classList.contains(obj.className))
-              obj.callback(mutation.target);
+            attClassesToObserve.forEach(function(obj) {
+              if (obj.type === 'a' && mutation.target.classList.contains(obj.className))
+                obj.callback(mutation.target);
+          }); 
             break;
         }
       }
     };
-    var observer = new MutationObserver(callback);
-    observer.observe(rootNode, {childList: true, subtree: true});
+    var observer1 = new MutationObserver(callback);
+    observer1.observe(rootNode, {childList: true, subtree: true});
+    var observer2 = new MutationObserver(callback);
+    observer2.observe(rootNode, {attributes: true, subtree: true});
   }
 }

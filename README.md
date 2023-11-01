@@ -3,11 +3,12 @@ TredoList
 =========
 
 > [!IMPORTANT]
-> UPDATE 24 Oct 2023: Trello recently released an update containing breaking changes, that make TredoList mostly non-functional :frowning:
-> * Layout: only the Grid and Default layouts work
-> * Coloring: none of the dynamic themes work
+> UPDATE 1 Nov 2023: Trello recently released an update containing breaking changes.
+> The source code here contains fixes that restore the functionality of the add-on.
 > 
-> The extension is being unpublished from Chrome Web Store and Mozilla Firefox Add-ons until we find a solution.
+> For now, the extension is unpublished from Chrome Web Store and Mozilla Firefox Add-ons.
+> You can use install from source code, until we publish a new version (which requires to migrate it
+> to Manifest v3).
 
 
 TredoList turns Trello into a convenient todo list tool, by introducing:

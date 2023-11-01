@@ -153,8 +153,9 @@ if (boardId !== null) {
   var States = ['canceled-tdl', 'done-tdl', 'for-later-tdl', 'waiting-for-tdl', 'in-progress-tdl']; // in order of priority
   var Fields = ['Canceled', 'Done', 'For Later', 'Waiting For', 'Started'];
 
+  const listSlotClass = "bi0h3HALKXjfDq";
   const listClass = "Sb_QqNKeadm2oq";
-  const listTitleClass = "mKJWg6W_CLHoiO";
+  const listTitleClass = "KLvU2mDGTQrsWG"; //"mKJWg6W_CLHoiO";
   const cardClass = "KWQlnMvysRK4fI";
   const cardContentClass = "amUfYqLTZOvGsn";
   const cardTitleClass = "NdQKKfeqJDDdX3";
@@ -292,41 +293,43 @@ if (boardId !== null) {
   })();
 
   function updateSwimlanes(listWrapperNode) {
-    var titleEl = listWrapperNode.querySelector(`.${listTitleClass}’`);
+    var titleEl = listWrapperNode.querySelector(`.${listTitleClass}`);
     if (!titleEl)
       return;
+    
     var wantWrap = false;
     var swimlaneTitle;
-    if (titleEl.value) {
-      var matches = titleEl.value.match(/^.*[\|🏊](.*)/);
+    if (titleEl.innerText) {
+      var matches = titleEl.innerText.match(/^.*[\|🏊](.*)/);
       if (matches && matches.length > 1) {
         wantWrap = true;
         swimlaneTitle = matches[1];
       }
     }
+    const listSlotNode = getParent(listWrapperNode, `.${listSlotClass}`);
     if (listWrapperNode.classList)
       listWrapperNode.classList.toggle('wrapBefore-tdl', wantWrap);
-    var lineBreakEl = listWrapperNode.previousElementSibling;
+    var lineBreakEl = listSlotNode.previousElementSibling;
     var hasLineBreakBefore = (lineBreakEl && lineBreakEl.classList && lineBreakEl.classList.contains('line-break-tdl'));
     if (wantWrap && !hasLineBreakBefore) {
       // Add
       var currentSwimlaneId = listWrapperNode.getAttribute('data-swimlane-id-tdl');
       if (currentSwimlaneId) { // a swimlane line break already exists (possibly below) => delete it
-        lineBreakEl = listWrapperNode.parentNode.querySelector('[data-swimlane-for-tdl="'+currentSwimlaneId+'"]');
+        lineBreakEl = listSlotNode.parentNode.querySelector('[data-swimlane-for-tdl="'+currentSwimlaneId+'"]');
         if (lineBreakEl)
-          listWrapperNode.parentElement.removeChild(lineBreakEl);
+          listSlotNode.parentElement.removeChild(lineBreakEl);
       }
       var swimlaneListId = tredoList_NewListId();
       var lineBreak = document.createElement('div');
       lineBreak.className = 'line-break-tdl';
-      lineBreak.setAttribute('data-swimlane-title-tdl', swimlaneTitle.trim());
-      lineBreak.setAttribute('data-swimlane-for-tdl', swimlaneListId);
-      listWrapperNode.parentNode.insertBefore(lineBreak, listWrapperNode);
-      listWrapperNode.setAttribute('data-swimlane-id-tdl', swimlaneListId);
+      lineBreak.setAttribute('data-swimlane-title-tdl', swimlaneTitle.trim()); // for displaying in the CSS:after
+      lineBreak.setAttribute('data-swimlane-for-tdl', swimlaneListId); // for finding the line break when the list is moved
+      listSlotNode.parentNode.insertBefore(lineBreak, listSlotNode);
+      listWrapperNode.setAttribute('data-swimlane-id-tdl', swimlaneListId); // link from list to line break
     }
     else if (!wantWrap && hasLineBreakBefore) {
       // Remove
-      listWrapperNode.parentElement.removeChild(lineBreakEl);
+      listSlotNode.parentElement.removeChild(lineBreakEl);
     }
     else if (wantWrap && hasLineBreakBefore) {
       // Modify
@@ -345,11 +348,6 @@ if (boardId !== null) {
       if (listCardNode)
         updateColor(listCardNode);
     }},
-    {className: 'list-header-name-assist' /*TODO*/, type: 'v', callback: function(node) {
-      var listWrapperNode = getParent(node, `.${listClass}`);
-      if (listWrapperNode)
-        updateSwimlanes(listWrapperNode);
-    }},
     {className: 'wrapBefore-tdl', type: 'c', callback: function(node) {
       updateSwimlanes(node); // make sure to make the line break follow in case the list is moved
     }}];
@@ -359,6 +357,11 @@ if (boardId !== null) {
       var listCardNode = getParent(node, `.${cardClass}`);
       if (listCardNode)
         updateColor(listCardNode);
+    }},
+    {className: listTitleClass, type: 'a', callback: function(node) {
+      var listWrapperNode = getParent(node, `.${listClass}`);
+      if (listWrapperNode)
+        updateSwimlanes(listWrapperNode);
     }}
   ];
 

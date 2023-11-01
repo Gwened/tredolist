@@ -34,8 +34,6 @@
 
 #board:not(.layout-trello-) .line-break-tdl:after {
     content: attr(data-swimlane-title-tdl);
-    display: block;
-    position: absolute;
     margin-left: 12px;
     font-size: 16px;
     margin-top: 4px;

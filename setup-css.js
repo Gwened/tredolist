@@ -54,8 +54,8 @@ if (boardId !== null) {
       insertCss(chrome.extension.getURL("css/"+newCss));
   }
 
-  function catchNodeByClass(className, callback) {
-    var nodes = document.getElementsByClassName(className);
+  function catchNodeBySelector(selector, callback) {
+    var nodes = document.querySelectorAll(selector);
     for (var node of nodes) {
       callback(node);
     }
@@ -153,14 +153,16 @@ if (boardId !== null) {
   var States = ['canceled-tdl', 'done-tdl', 'for-later-tdl', 'waiting-for-tdl', 'in-progress-tdl']; // in order of priority
   var Fields = ['Canceled', 'Done', 'For Later', 'Waiting For', 'Started'];
 
-  const listSlotClass = "bi0h3HALKXjfDq";
-  const listClass = "Sb_QqNKeadm2oq";
-  const listTitleClass = "KLvU2mDGTQrsWG"; //"mKJWg6W_CLHoiO";
-  const cardClass = "KWQlnMvysRK4fI";
-  const cardContentClass = "amUfYqLTZOvGsn";
-  const cardTitleClass = "NdQKKfeqJDDdX3";
-  const badgesClass = "jS9THwzyUow79A";
-  const badgeClass = "BOkIMdOUAQVOQk";
+  const selectors = {
+    listSlot: '[data-testid="list-wrapper"]', // '.bi0h3HALKXjfDq'
+    list: '[data-testid="list"]', // '.Sb_QqNKeadm2oq'
+    listTitle: '[data-testid="list-name"]', // '.KLvU2mDGTQrsWG'
+    card: '[data-testid="trello-card"]', // '.KWQlnMvysRK4fI'
+    cardContent: '[data-testid="trello-card"] > div:first-child', // '.amUfYqLTZOvGsn'
+    cardTitle: '[data-testid="card-name"]', // '.NdQKKfeqJDDdX3'
+    badges: '[data-testid="card-front-badges"]', // '.jS9THwzyUow79A'
+    badge: '[data-testid="card-front-badges"] > *' // '.BOkIMdOUAQVOQk'
+  }
 
   function getStateFromBadgeText(node) {
     if (!node)
@@ -251,13 +253,13 @@ if (boardId !== null) {
     // if (listCardNode)
     //   console.log("updateColor", listCardNode.innerText)
     // Look at badge text
-    var badgeTextNodes = listCardNode.querySelectorAll(`.${badgesClass}`);
+    var badgeTextNodes = listCardNode.querySelectorAll(selectors.badge);
     var compoundStates = Array.from(badgeTextNodes).map(function(badgeTextNode) {
       return getStateFromBadgeText(badgeTextNode);
     });
 
     // Look at title
-    var titleState = getStateFromTitle(listCardNode.querySelector(`.${cardTitleClass}`));
+    var titleState = getStateFromTitle(listCardNode.querySelector(selectors.cardTitle));
     if (titleState !== undefined)
       compoundStates.push(titleState);
 
@@ -267,11 +269,11 @@ if (boardId !== null) {
 
     // Set additional class if having a short or past deadline
     if (listCardNode.classList) {
-      iconClockNode = listCardNode.querySelector(`.${badgeClass}[data-testid="badge-due-date-completed"]`);
+      iconClockNode = listCardNode.querySelector(`${selectors.badge}[data-testid="badge-due-date-completed"]`);
       if (iconClockNode)
         listCardNode.classList.toggle('urgent-tdl', false);
       else {
-        var iconClockNode = listCardNode.querySelector(`.${badgeClass}[data-testid="badge-due-date-not-completed"]`);
+        var iconClockNode = listCardNode.querySelector(`${selectors.badge}[data-testid="badge-due-date-not-completed"]`);
         if (iconClockNode) {
           const colorGroup = (iconClockNode !== null)
             ? determineColorGroup(strToRGB(window.getComputedStyle(iconClockNode).getPropertyValue('background-color')))
@@ -293,7 +295,7 @@ if (boardId !== null) {
   })();
 
   function updateSwimlanes(listWrapperNode) {
-    var titleEl = listWrapperNode.querySelector(`.${listTitleClass}`);
+    var titleEl = listWrapperNode.querySelector(selectors.listTitle);
     if (!titleEl)
       return;
     
@@ -306,7 +308,7 @@ if (boardId !== null) {
         swimlaneTitle = matches[1];
       }
     }
-    const listSlotNode = getParent(listWrapperNode, `.${listSlotClass}`);
+    const listSlotNode = getParent(listWrapperNode, selectors.listSlot);
     if (listWrapperNode.classList)
       listWrapperNode.classList.toggle('wrapBefore-tdl', wantWrap);
     var lineBreakEl = listSlotNode.previousElementSibling;
@@ -337,29 +339,29 @@ if (boardId !== null) {
     }
   }
 
-  catchNodeByClass(cardClass, updateColor);
+  catchNodeBySelector(selectors.card, updateColor);
 
-  catchNodeByClass(listClass, updateSwimlanes);
+  catchNodeBySelector(selectors.list, updateSwimlanes);
 
   // Make sure we catch late asynchronous badge changes
-  var clClassesToObserve = [
-    {className: cardContentClass, type: 'c', callback: function(node) {
-      var listCardNode = getParent(node, `.${cardClass}`);
+  var nodesToObserve = [
+    {selector: selectors.cardContent, type: 'c', callback: function(node) {
+      var listCardNode = getParent(node, selectors.card);
       if (listCardNode)
         updateColor(listCardNode);
     }},
-    {className: 'wrapBefore-tdl', type: 'c', callback: function(node) {
+    {selector: '.wrapBefore-tdl', type: 'c', callback: function(node) {
       updateSwimlanes(node); // make sure to make the line break follow in case the list is moved
     }}];
   
-  var attClassesToObserve = [
-    {className: badgeClass, type: 'a', callback: function(node) {
-      var listCardNode = getParent(node, `.${cardClass}`);
+  var attributesToObserve = [
+    {selector: selectors.badge, type: 'a', callback: function(node) {
+      var listCardNode = getParent(node, selectors.card);
       if (listCardNode)
         updateColor(listCardNode);
     }},
-    {className: listTitleClass, type: 'a', callback: function(node) {
-      var listWrapperNode = getParent(node, `.${listClass}`);
+    {selector: selectors.listTitle, type: 'a', callback: function(node) {
+      var listWrapperNode = getParent(node, selectors.list);
       if (listWrapperNode)
         updateSwimlanes(listWrapperNode);
     }}
@@ -373,12 +375,12 @@ if (boardId !== null) {
         switch (mutation.type) {
           case 'childList':
             mutation.addedNodes.forEach(function(node, iNode, nodes) {
-              clClassesToObserve.forEach(function(obj) {
+              nodesToObserve.forEach(function(obj) {
                 switch (obj.type) {
                   case 'c': // does added node contain tracked class?
-                    // if ((getParent(node, `.${cardClass}`)?.innerText ?? "").indexOf("Facture") !== -1)
+                    // if ((getParent(node, selectors.card)?.innerText ?? "").indexOf("Facture") !== -1)
                     //   console.log("Elem in Facture modified", node.className, "want match", obj.className);
-                    if (node.classList && node.classList.contains(obj.className))
+                    if (node?.matches(obj.selector))
                       obj.callback(node);
                     break;
                   case 'v': // has added node a nodeValue under tracked class?
@@ -390,8 +392,8 @@ if (boardId !== null) {
             });
             break;
           case 'attributes':
-            attClassesToObserve.forEach(function(obj) {
-              if (obj.type === 'a' && mutation.target.classList.contains(obj.className))
+            attributesToObserve.forEach(function(obj) {
+              if (obj.type === 'a' && mutation.target?.matches(obj.selector))
                 obj.callback(mutation.target);
           }); 
             break;

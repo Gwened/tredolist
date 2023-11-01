@@ -1,32 +1,32 @@
 
-#board .KWQlnMvysRK4fI.done-tdl {
+#board [data-testid="trello-card"].done-tdl {
     background-color: #61bd4f !important;
 }
 
-#board .KWQlnMvysRK4fI.in-progress-tdl {
+#board [data-testid="trello-card"].in-progress-tdl {
     background-color: #f1ed00;
 }
 
-#board .KWQlnMvysRK4fI.canceled-tdl {
+#board [data-testid="trello-card"].canceled-tdl {
     background-color: #fa6f65
 }
 
-#board .KWQlnMvysRK4fI.for-later-tdl {
+#board [data-testid="trello-card"].for-later-tdl {
     background-color: #ffffff40;
 }
 
-#board .KWQlnMvysRK4fI.waiting-for-tdl {
+#board [data-testid="trello-card"].waiting-for-tdl {
     background-color: #ffa700;
 }
 
-#board .KWQlnMvysRK4fI.done-tdl .NdQKKfeqJDDdX3 {
+#board [data-testid="trello-card"].done-tdl [data-testid="card-name"] {
     color: #fff;
 }
 
-#board .KWQlnMvysRK4fI.urgent-tdl .NdQKKfeqJDDdX3 {
+#board [data-testid="trello-card"].urgent-tdl [data-testid="card-name"] {
     font-weight: 700;
 }
 
-#board .Sb_QqNKeadm2oq {
+#board [data-testid="list"] {
     background-color: #e2e4e6be
 }

@@ -10,11 +10,9 @@
     flex-direction: column;
 }
 
-#board.layout-trello-vertical .list-wrapper {
-    width: inherit;
-}
-#board.layout-trello-vertical .list-card {
-    max-width: inherit ;
+#board.layout-trello-vertical [data-testid="list-wrapper"] {
+    height: inherit;
+    margin-bottom: 1rem;
 }
 
 #board.layout-trello-mixed {
@@ -56,44 +54,38 @@
     height: auto;
 }
 
-#board.layout-trello-horizcards .list-cards {
+#board.layout-trello-horizcards [data-testid="list-wrapper"] {
     width: 100%;
 }
-#board.layout-trello-horizcards .list-wrapper {
+#board.layout-trello-horizcards [data-testid="list"] {
     width: calc(100% - 20px);
 }
 
-#board.layout-trello-horizcards .list-header {
+#board.layout-trello-horizcards [data-testid="list-header"] {
     max-height: 24px;
+    margin-bottom: 1rem;
 }
 
-#board.layout-trello-horizcards .js-list-content {
+#board.layout-trello-horizcards [data-testid="list-cards"] {
     flex-direction: row;
     flex-wrap: wrap;
 }
 
-#board.layout-trello-horizcards .js-list-content > :first-child {
-    flex-basis: calc(100% - 44px);
-}
-
-#board.layout-trello-horizcards .list-wrapper .list-cards {
+#board.layout-trello-horizcards [data-testid="list"] [data-testid="list-cards"] {
     display: flex;  
     flex-direction: row;
     flex-wrap: wrap;
 }
 
-#board.layout-trello-horizcards .list-card {
+#board.layout-trello-horizcards [data-testid="trello-card"] {
+    flex-basis: 100%;
     margin-right: 8px;
 }
 
-#board .list-card.done {
+#board.layout-trello-horizcards [data-testid="list-card"] {
+    padding-bottom: 8px;
+}
+
+#board [data-testid="trello-card"].done {
     border-radius: 3px;
-}
-
-#board .list-card.done .badge.complete {
-    display: none;
-}
-
-#board .list-card .badge.hidden {
-    display: none;
 }

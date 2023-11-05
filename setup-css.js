@@ -51,7 +51,7 @@ if (boardId !== null) {
     if (styleSh !== null)
       switchStylesheet(styleSh, newCss);
     else
-      insertCss(chrome.extension.getURL("css/"+newCss));
+      insertCss(chrome.runtime.getURL("css/"+newCss));
   }
 
   function catchNodeBySelector(selector, callback) {
@@ -87,7 +87,7 @@ if (boardId !== null) {
   var layouts = ['', 'vertical', 'mixed', 'horizcards'];
 
   function setLayout(layoutName) {
-    if (!board.classList)
+    if (!board?.classList)
       return;
     board.classList.add('layout-trello-'+layoutName);
     for (var layout of layouts) {
@@ -96,7 +96,7 @@ if (boardId !== null) {
     }
   }
 
-  insertCss(chrome.extension.getURL('css/layout.css'), 'layoutcss');
+  insertCss(chrome.runtime.getURL('css/layout.css'), 'layoutcss');
 
   var configObj = {
     layout: '',
@@ -367,9 +367,10 @@ if (boardId !== null) {
     }}
   ];
 
-  var rootNode = document.getElementsByClassName('board-canvas');
-  if (rootNode) {
-    rootNode = rootNode[0];
+  var coll = document.getElementsByClassName('board-canvas');
+  if (coll && coll.length > 0 && coll[0] !== null) {
+    rootNode = coll[0];
+
     var callback = function(mutations) {
       for (var mutation of mutations) {
         switch (mutation.type) {

@@ -1,12 +1,12 @@
 {
-    "manifest_version": 2,
-    "name": "TredoList",
+    "manifest_version": 3,
+    "name": "TredoList BETA",
     "applications": {
         "gecko": {
             "id": "tredolist-firefox@netismic.com"
         }
     },
-    "description": "TredoList turns Trello into a convenient todolist tool, by introducing new list layouts and dynamic color themes.",
+    "description": "THIS EXTENSION IS FOR BETA TESTING. TredoList turns Trello into a convenient todolist tool, by introducing new list layouts and dynamic color themes.",
     "version": "0.9.8",
     "author": "Olivier Cado",
     "icons": {
@@ -14,22 +14,30 @@
         "128": "icon128.png"
     },
     "background": {
-        "page": "background.html",
-        "persistent": true
+        "service_worker": "service_worker.js",
+        "type": "module"
     },
     "permissions": [
-        "*://trello.com/b/*",
-        "tabs",
+        "scripting",
+        "declarativeContent",
         "storage"
     ],
-    "web_accessible_resources": [
-        "css/layout.css",
-        "css/theme-.css",
-        "css/theme-bright.css",
-        "css/theme-pastel.css",
-        "css/theme-dark.css"
+    "host_permissions": [
+        "*://trello.com/b/*"
     ],
-    "page_action": {
+    "web_accessible_resources": [{
+        "resources": [
+            "css/layout.css",
+            "css/theme-.css",
+            "css/theme-bright.css",
+            "css/theme-pastel.css",
+            "css/theme-dark.css"
+        ],
+        "matches": [
+            "*://trello.com/*"
+        ]
+    }],
+    "action": {
         "default_title": "Tredolist",
         "default_popup": "config.html",
         "default_icon": {
@@ -37,9 +45,5 @@
             "38": "icon48.png",
             "48": "icon48.png"
         }
-    },
-    "-ms-preload": {
-        "backgroundScript": "backgroundScriptsAPIBridge.js",
-        "contentScript": "contentScriptsAPIBridge.js"
     }
 }

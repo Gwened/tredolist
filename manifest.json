@@ -6,8 +6,8 @@
             "id": "tredolist-firefox@netismic.com"
         }
     },
-    "description": "THIS EXTENSION IS FOR BETA TESTING. TredoList turns Trello into a convenient todolist tool, by introducing new list layouts and dynamic color themes.",
-    "version": "0.9.8",
+    "description": "THIS EXTENSION IS FOR BETA TESTING. Turn Trello into a convenient todolist tool, with new list layouts and dynamic color themes",
+    "version": "1.0.0",
     "author": "Olivier Cado",
     "icons": {
         "48": "icon48.png",

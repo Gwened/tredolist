@@ -2,15 +2,6 @@
 TredoList
 =========
 
-> [!IMPORTANT]
-> UPDATE 1 Nov 2023: Trello recently released an update containing breaking changes.
-> The source code here contains fixes that restore the functionality of the add-on.
-> 
-> For now, the extension is unpublished from Chrome Web Store and Mozilla Firefox Add-ons.
-> You can use install from source code, until we publish a new version (which requires to migrate it
-> to Manifest v3).
-
-
 TredoList turns Trello into a convenient todo list tool, by introducing:
 * new optional list layouts
 * new optional dynamic color themes
@@ -73,6 +64,12 @@ Known Bugs and Roadmap
 Currently, if you add Swimlanes to a board, moving cards after the first swimlane is buggy: the target position is often shifted by one or more cards. This is most probably due to the fact that a swmilane adds a 'div' which is taken into account by Trello to compute the target slot.
 
 Check out the [Tredolist](https://trello.com/b/af1CpwBl/tredolist) Trello board to follow updates!
+
+Recent History
+--------------
+
+- November 2023: Updated the logic following the major under-the-hoods changes of Trello
+- November 2023: Upgraded the extension to Manifest v3
 
 Contributors
 ------------

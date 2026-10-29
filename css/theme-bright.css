@@ -1,29 +1,29 @@
 
-#board [data-testid="trello-card"].done-tdl {
+#board :is([data-testid="trello-card"], [data-testid="minimal-card"]).done-tdl {
     background-color: #61bd4f !important;
 }
 
-#board [data-testid="trello-card"].in-progress-tdl {
+#board :is([data-testid="trello-card"], [data-testid="minimal-card"]).in-progress-tdl {
     background-color: #f1ed00;
 }
 
-#board [data-testid="trello-card"].canceled-tdl {
+#board :is([data-testid="trello-card"], [data-testid="minimal-card"]).canceled-tdl {
     background-color: #fa6f65
 }
 
-#board [data-testid="trello-card"].for-later-tdl {
+#board :is([data-testid="trello-card"], [data-testid="minimal-card"]).for-later-tdl {
     background-color: #ffffff40;
 }
 
-#board [data-testid="trello-card"].waiting-for-tdl {
+#board :is([data-testid="trello-card"], [data-testid="minimal-card"]).waiting-for-tdl {
     background-color: #ffa700;
 }
 
-#board [data-testid="trello-card"].done-tdl [data-testid="card-name"] {
+#board :is([data-testid="trello-card"], [data-testid="minimal-card"]).done-tdl [data-testid="card-name"] {
     color: #fff;
 }
 
-#board [data-testid="trello-card"].urgent-tdl [data-testid="card-name"] {
+#board :is([data-testid="trello-card"], [data-testid="minimal-card"]).urgent-tdl [data-testid="card-name"] {
     font-weight: 700;
 }
 

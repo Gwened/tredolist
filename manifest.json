@@ -1,13 +1,13 @@
 {
     "manifest_version": 3,
-    "name": "TredoList BETA",
+    "name": "TredoList",
     "applications": {
         "gecko": {
             "id": "tredolist-firefox@netismic.com"
         }
     },
-    "description": "THIS EXTENSION IS FOR BETA TESTING. Turn Trello into a convenient todolist tool, with new list layouts and dynamic color themes",
-    "version": "1.0.0",
+    "description": "Turn Trello into a convenient todolist tool, with new list layouts and dynamic color themes",
+    "version": "1.0.0.2",
     "author": "Olivier Cado",
     "icons": {
         "48": "icon48.png",

@@ -15,6 +15,11 @@
     margin-bottom: 1rem;
 }
 
+#board.layout-trello-horizcards [data-testid="list-wrapper"],
+#board.layout-trello-mixed [data-testid="list-wrapper"] {
+    height: auto;
+}
+
 #board.layout-trello-mixed {
     flex-direction: row;
     flex-wrap: wrap;
@@ -44,12 +49,12 @@
     background-color: #e2e4e670;
 }
 
-#board.layout-trello-horizcards .list-wrapper.wrapBefore-tdl,
-#board.layout-trello-vertical .list-wrapper.wrapBefore-tdl {
+#board.layout-trello-horizcards [data-testid="list-wrapper"].wrapBefore-tdl,
+#board.layout-trello-vertical [data-testid="list-wrapper"].wrapBefore-tdl {
     margin-top: 32px !important;
 }
 
-#board:not(.layout-trello-) .list-wrapper {
+#board:not(.layout-trello-) [data-testid="list-wrapper"] {
     margin: 0 0 10px 10px;
     height: auto;
 }
@@ -67,25 +72,31 @@
 }
 
 #board.layout-trello-horizcards [data-testid="list-cards"] {
+    display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    overflow: visible;
+    height: auto;
 }
 
 #board.layout-trello-horizcards [data-testid="list"] [data-testid="list-cards"] {
     display: flex;  
     flex-direction: row;
     flex-wrap: wrap;
-}
-
-#board.layout-trello-horizcards [data-testid="trello-card"] {
-    flex-basis: 100%;
-    margin-right: 8px;
+    overflow: visible;
+    height: auto;
 }
 
 #board.layout-trello-horizcards [data-testid="list-card"] {
+    flex-basis: 100%;
+    margin-right: 8px;
     padding-bottom: 8px;
 }
 
-#board [data-testid="trello-card"].done {
+#board.layout-trello-horizcards :is([data-testid="trello-card"], [data-testid="minimal-card"]) {
+    margin-right: 8px;
+}
+
+#board :is([data-testid="trello-card"], [data-testid="minimal-card"]).done {
     border-radius: 3px;
 }

@@ -86,13 +86,20 @@ if (boardId !== null) {
   var board = document.getElementById('board');
   var layouts = ['', 'vertical', 'mixed', 'horizcards'];
 
+  function getBoard() {
+    if (!board || !board.isConnected)
+      board = document.getElementById('board');
+    return board;
+  }
+
   function setLayout(layoutName) {
-    if (!board?.classList)
+    var boardEl = getBoard();
+    if (!boardEl?.classList)
       return;
-    board.classList.add('layout-trello-'+layoutName);
+    boardEl.classList.add('layout-trello-'+layoutName);
     for (var layout of layouts) {
       if (layout !== layoutName)
-        board.classList.remove('layout-trello-'+layout);
+        boardEl.classList.remove('layout-trello-'+layout);
     }
   }
 
@@ -157,8 +164,8 @@ if (boardId !== null) {
     listSlot: '[data-testid="list-wrapper"]', // '.bi0h3HALKXjfDq'
     list: '[data-testid="list"]', // '.Sb_QqNKeadm2oq'
     listTitle: '[data-testid="list-name"]', // '.KLvU2mDGTQrsWG'
-    card: '[data-testid="trello-card"]', // '.KWQlnMvysRK4fI'
-    cardContent: '[data-testid="trello-card"] > div:first-child', // '.amUfYqLTZOvGsn'
+    card: ':is([data-testid="trello-card"], [data-testid="minimal-card"])',
+    cardContent: ':is([data-testid="trello-card"], [data-testid="minimal-card"]) > div:first-child',
     cardTitle: '[data-testid="card-name"]', // '.NdQKKfeqJDDdX3'
     badges: '[data-testid="card-front-badges"]', // '.jS9THwzyUow79A'
     badge: '[data-testid="card-front-badges"] > *' // '.BOkIMdOUAQVOQk'
@@ -294,8 +301,20 @@ if (boardId !== null) {
     }
   })();
 
-  function updateSwimlanes(listWrapperNode) {
-    var titleEl = listWrapperNode.querySelector(selectors.listTitle);
+  function resolveListSlot(listOrWrapper) {
+    if (!listOrWrapper || !listOrWrapper.matches)
+      return null;
+    if (listOrWrapper.matches(selectors.listSlot))
+      return listOrWrapper;
+    return getParent(listOrWrapper, selectors.listSlot);
+  }
+
+  function updateSwimlanes(listOrWrapper) {
+    var listSlotNode = resolveListSlot(listOrWrapper);
+    if (!listSlotNode)
+      return;
+
+    var titleEl = listSlotNode.querySelector(selectors.listTitle);
     if (!titleEl)
       return;
     
@@ -308,14 +327,12 @@ if (boardId !== null) {
         swimlaneTitle = matches[1];
       }
     }
-    const listSlotNode = getParent(listWrapperNode, selectors.listSlot);
-    if (listWrapperNode.classList)
-      listWrapperNode.classList.toggle('wrapBefore-tdl', wantWrap);
+    listSlotNode.classList.toggle('wrapBefore-tdl', wantWrap);
     var lineBreakEl = listSlotNode.previousElementSibling;
     var hasLineBreakBefore = (lineBreakEl && lineBreakEl.classList && lineBreakEl.classList.contains('line-break-tdl'));
     if (wantWrap && !hasLineBreakBefore) {
       // Add
-      var currentSwimlaneId = listWrapperNode.getAttribute('data-swimlane-id-tdl');
+      var currentSwimlaneId = listSlotNode.getAttribute('data-swimlane-id-tdl');
       if (currentSwimlaneId) { // a swimlane line break already exists (possibly below) => delete it
         lineBreakEl = listSlotNode.parentNode.querySelector('[data-swimlane-for-tdl="'+currentSwimlaneId+'"]');
         if (lineBreakEl)
@@ -327,28 +344,51 @@ if (boardId !== null) {
       lineBreak.setAttribute('data-swimlane-title-tdl', swimlaneTitle.trim()); // for displaying in the CSS:after
       lineBreak.setAttribute('data-swimlane-for-tdl', swimlaneListId); // for finding the line break when the list is moved
       listSlotNode.parentNode.insertBefore(lineBreak, listSlotNode);
-      listWrapperNode.setAttribute('data-swimlane-id-tdl', swimlaneListId); // link from list to line break
+      listSlotNode.setAttribute('data-swimlane-id-tdl', swimlaneListId); // link from list to line break
     }
     else if (!wantWrap && hasLineBreakBefore) {
       // Remove
       listSlotNode.parentElement.removeChild(lineBreakEl);
+      listSlotNode.removeAttribute('data-swimlane-id-tdl');
     }
     else if (wantWrap && hasLineBreakBefore) {
       // Modify
-      lineBreakEl.setAttribute('data-swimlane-title-tdl', swimlaneTitle);
+      lineBreakEl.setAttribute('data-swimlane-title-tdl', swimlaneTitle.trim());
     }
   }
 
-  catchNodeBySelector(selectors.card, updateColor);
+  function listFromTitleMutation(node) {
+    if (!node)
+      return null;
+    var el = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+    if (!el || !el.closest)
+      return null;
+    var title = el.matches?.(selectors.listTitle) ? el : el.closest(selectors.listTitle);
+    if (!title && el.querySelector)
+      title = el.querySelector(selectors.listTitle);
+    if (!title)
+      return null;
+    return title.closest(selectors.list) || getParent(title, selectors.list);
+  }
 
-  catchNodeBySelector(selectors.list, updateSwimlanes);
+  function refreshBoardNodes() {
+    catchNodeBySelector(selectors.card, updateColor);
+    catchNodeBySelector(selectors.list, updateSwimlanes);
+  }
 
   // Make sure we catch late asynchronous badge changes
   var nodesToObserve = [
+    {selector: selectors.card, type: 'c', callback: updateColor},
     {selector: selectors.cardContent, type: 'c', callback: function(node) {
       var listCardNode = getParent(node, selectors.card);
       if (listCardNode)
         updateColor(listCardNode);
+    }},
+    {selector: selectors.list, type: 'c', callback: updateSwimlanes},
+    {selector: selectors.listTitle, type: 'c', callback: function(node) {
+      var listNode = node.closest(selectors.list) || getParent(node, selectors.list);
+      if (listNode)
+        updateSwimlanes(listNode);
     }},
     {selector: '.wrapBefore-tdl', type: 'c', callback: function(node) {
       updateSwimlanes(node); // make sure to make the line break follow in case the list is moved
@@ -360,6 +400,7 @@ if (boardId !== null) {
       if (listCardNode)
         updateColor(listCardNode);
     }},
+    {selector: selectors.card, type: 'a', callback: updateColor},
     {selector: selectors.listTitle, type: 'a', callback: function(node) {
       var listWrapperNode = getParent(node, selectors.list);
       if (listWrapperNode)
@@ -367,43 +408,84 @@ if (boardId !== null) {
     }}
   ];
 
-  var coll = document.getElementsByClassName('board-canvas');
-  if (coll && coll.length > 0 && coll[0] !== null) {
-    rootNode = coll[0];
+  function matchAddedNode(node, selector, callback) {
+    if (!node || node.nodeType !== Node.ELEMENT_NODE)
+      return;
+    if (node.matches(selector))
+      callback(node);
+    node.querySelectorAll(selector).forEach(callback);
+  }
 
+  function setupObservers(rootNode) {
     var callback = function(mutations) {
       for (var mutation of mutations) {
         switch (mutation.type) {
           case 'childList':
-            mutation.addedNodes.forEach(function(node, iNode, nodes) {
+            mutation.addedNodes.forEach(function(node) {
               nodesToObserve.forEach(function(obj) {
                 switch (obj.type) {
-                  case 'c': // does added node contain tracked class?
-                    // if ((getParent(node, selectors.card)?.innerText ?? "").indexOf("Facture") !== -1)
-                    //   console.log("Elem in Facture modified", node.className, "want match", obj.className);
-                    if (node?.matches(obj.selector))
-                      obj.callback(node);
+                  case 'c':
+                    matchAddedNode(node, obj.selector, obj.callback);
                     break;
-                  case 'v': // has added node a nodeValue under tracked class?
+                  case 'v':
                     if (node.nodeValue !== undefined && node.parentElement && node.parentElement.classList && node.parentElement.classList.contains(obj.className))
                       obj.callback(node);
                     break;
                 }
               });
             });
+            // List title edits replace nested text/nodes without matching card/list selectors
+            var listFromTitle = listFromTitleMutation(mutation.target);
+            if (listFromTitle)
+              updateSwimlanes(listFromTitle);
+            break;
+          case 'characterData':
+            var listFromText = listFromTitleMutation(mutation.target);
+            if (listFromText)
+              updateSwimlanes(listFromText);
             break;
           case 'attributes':
+            if (mutation.attributeName === 'data-testid' && mutation.target?.matches(selectors.card))
+              updateColor(mutation.target);
             attributesToObserve.forEach(function(obj) {
               if (obj.type === 'a' && mutation.target?.matches(obj.selector))
                 obj.callback(mutation.target);
-          }); 
+            });
             break;
         }
       }
     };
     var observer1 = new MutationObserver(callback);
-    observer1.observe(rootNode, {childList: true, subtree: true});
+    observer1.observe(rootNode, {childList: true, subtree: true, characterData: true});
     var observer2 = new MutationObserver(callback);
     observer2.observe(rootNode, {attributes: true, subtree: true});
   }
+
+  function getBoardCanvas() {
+    return document.querySelector('.board-canvas, [data-testid="board-canvas"]');
+  }
+
+  var observersReady = false;
+  var readyAttempts = 0;
+  var maxReadyAttempts = 40;
+
+  function tryReady() {
+    var boardEl = getBoard();
+    var rootNode = getBoardCanvas();
+    if (boardEl && rootNode) {
+      if (!observersReady) {
+        setupObservers(rootNode);
+        observersReady = true;
+      }
+      if (configObj.layout)
+        setLayout(configObj.layout);
+      refreshBoardNodes();
+      return;
+    }
+    readyAttempts++;
+    if (readyAttempts < maxReadyAttempts)
+      setTimeout(tryReady, 250);
+  }
+
+  tryReady();
 }

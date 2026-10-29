@@ -1,35 +1,42 @@
 
+function isTrelloBoard(url) {
+  return typeof url === 'string' && /:\/\/trello\.com\/b\//.test(url);
+}
+
+function injectSetup(tabId) {
+  chrome.scripting.executeScript({
+    target: { tabId: tabId },
+    files: ['setup-css.js']
+  });
+}
+
+function syncTab(tab) {
+  if (!tab?.id)
+    return;
+  if (isTrelloBoard(tab.url)) {
+    chrome.action.enable(tab.id);
+    injectSetup(tab.id);
+  } else if (tab.url) {
+    chrome.action.disable(tab.id);
+  }
+}
 
 chrome.runtime.onInstalled.addListener(() => {
+  // Disabled by default; enabled per tab on Trello boards (Chrome + Firefox).
   chrome.action.disable();
-
-  // Clear all rules to ensure only our expected rules are set
-  chrome.declarativeContent.onPageChanged.removeRules(undefined, () => {
-    let mainRule = {
-      conditions: [
-        new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: {hostSuffix: '.trello.com', pathPrefix: '/b/'},
-        })
-      ],
-      actions: [new chrome.declarativeContent.ShowAction()],
-    };
-
-    // Finally, apply our new array of rules
-    let rules = [mainRule];
-    chrome.declarativeContent.onPageChanged.addRules(rules);
-  });
+  chrome.tabs.query({}, (tabs) => tabs.forEach(syncTab));
 });
 
-
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    // Match Trello board pages only
-    var regex = new RegExp(/.*:\/\/trello\.com\/b\/.*/);
-    var match = regex.exec(tab.url);
+  if (!isTrelloBoard(tab.url)) {
+    if (tab.url)
+      chrome.action.disable(tabId);
+    return;
+  }
 
-  
-    // Setup page for layout changes and show page action
-    if (match) {
-      chrome.scripting.executeScript({target: {tabId: tabId}, files: ['setup-css.js']});
-    }
-  });
-  
+  chrome.action.enable(tabId);
+
+  // Inject on navigation / load complete (covers full loads and Trello SPA board changes).
+  if (changeInfo.status === 'complete' || changeInfo.url)
+    injectSetup(tabId);
+});

@@ -1,6 +1,6 @@
 release:
-	rm -f tredolist.zip
-	zip tredolist.zip \
+	rm -f tredolist-firefox.zip
+	zip tredolist-firefox.zip \
 		manifest.json \
 		service_worker.js \
 		setup-css.js \

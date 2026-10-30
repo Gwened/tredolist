@@ -103,6 +103,31 @@ if (boardId !== null) {
     }
   }
 
+  function expectedLayoutClass() {
+    return 'layout-trello-' + configObj.layout;
+  }
+
+  function ensureLayout() {
+    var boardEl = getBoard();
+    if (!boardEl?.classList)
+      return false;
+    if (boardEl.classList.contains(expectedLayoutClass()))
+      return false;
+    setLayout(configObj.layout);
+    return true;
+  }
+
+  function isBoardNode(node) {
+    return !!(node && node.nodeType === Node.ELEMENT_NODE &&
+      (node.id === 'board' || node.getAttribute('data-testid') === 'lists'));
+  }
+
+  function onBoardDomRestored() {
+    board = document.getElementById('board');
+    ensureLayout();
+    refreshBoardNodes();
+  }
+
   insertCss(chrome.runtime.getURL('css/layout.css'), 'layoutcss');
 
   var configObj = {
@@ -418,10 +443,13 @@ if (boardId !== null) {
 
   function setupObservers(rootNode) {
     var callback = function(mutations) {
+      var boardRestored = false;
       for (var mutation of mutations) {
         switch (mutation.type) {
           case 'childList':
             mutation.addedNodes.forEach(function(node) {
+              if (isBoardNode(node) || (node.querySelector && node.querySelector('#board, [data-testid="lists"]')))
+                boardRestored = true;
               nodesToObserve.forEach(function(obj) {
                 switch (obj.type) {
                   case 'c':
@@ -445,6 +473,8 @@ if (boardId !== null) {
               updateSwimlanes(listFromText);
             break;
           case 'attributes':
+            if (mutation.attributeName === 'class' && isBoardNode(mutation.target))
+              ensureLayout();
             if (mutation.attributeName === 'data-testid' && mutation.target?.matches(selectors.card))
               updateColor(mutation.target);
             attributesToObserve.forEach(function(obj) {
@@ -454,6 +484,8 @@ if (boardId !== null) {
             break;
         }
       }
+      if (boardRestored)
+        onBoardDomRestored();
     };
     var observer1 = new MutationObserver(callback);
     observer1.observe(rootNode, {childList: true, subtree: true, characterData: true});
@@ -477,8 +509,7 @@ if (boardId !== null) {
         setupObservers(rootNode);
         observersReady = true;
       }
-      if (configObj.layout)
-        setLayout(configObj.layout);
+      setLayout(configObj.layout);
       refreshBoardNodes();
       return;
     }

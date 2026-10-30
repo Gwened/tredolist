@@ -7,7 +7,7 @@
         }
     },
     "description": "Turn Trello into a convenient todolist tool, with new list layouts and dynamic color themes",
-    "version": "1.0.0.2",
+    "version": "1.0.0.3",
     "author": "Olivier Cado",
     "icons": {
         "48": "icon48.png",
